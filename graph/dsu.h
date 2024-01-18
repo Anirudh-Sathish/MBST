@@ -1,24 +1,22 @@
 #include<iostream>
 #include<algorithm>
 #include<vector>
-
-
+#include<map>
+using namespace std;
 #ifndef DSU_H
 #define DSU_H
-class DSU
+class DSU_map
 {
     private:
-        int *representative;
-        int *height;
+        map<int,int> representative;
+        map<int,int> height;
     public:
-        DSU(int n)
+        DSU_map(vector<int> vertices)
         {
-            representative = new int[n];
-            height = new int[n];
-            for(int i = 0 ; i < n; i++)
+            for(const auto v :vertices)
             {
-                representative[i] = i;
-                height[i] = 0;
+                representative[v] = v;
+                height[v] = v;
             }
         }
         int find(int idx)
