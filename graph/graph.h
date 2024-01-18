@@ -123,9 +123,52 @@ class WeightedGraph
             }
             return mstEdges;
         }
+        map<int,int> set_degree()
+        {
+            map <int,int> degree;
+            for(auto item: this->adjacencyList)
+            {
+                degree[item.first] = 0;
+            }
+            return degree;
+        }
+        vector<Edge> kruskal_mbst()
+        {
+            vector<Edge> edges = this->get_edges();
+            auto compareByWeight = [](const Edge &a, const Edge &b) {
+                return a.weight < b.weight;
+                };
+            sort(edges.begin(), edges.end(), compareByWeight);
+
+            map<int,int> degree = this->set_degree();
+            DSU dsu_obj(edges.size());
+            vector<Edge> mstEdges;
+            for(auto edge: edges)
+            {
+                if (dsu_obj.find(edge.source_node) != dsu_obj.find(edge.destination_node))
+                {
+                    if(degree[edge.source_node]<2 && degree[edge.destination_node]<2)
+                    {
+                        dsu_obj.union_dsu(edge.source_node,edge.destination_node);
+                        mstEdges.push_back(edge);
+                        degree[edge.source_node]+=1;
+                        degree[edge.destination_node]+=1;
+                    }
+                }
+            }
+            return mstEdges;
+        }
         void displayKruskal()
         {
             vector<Edge> mst = this->kruskal_mst();
+            for(const auto edge: mst)
+            {
+                cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
+            }
+        }
+        void displayKruskalMBST()
+        {
+            vector<Edge> mst = this->kruskal_mbst();
             for(const auto edge: mst)
             {
                 cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
