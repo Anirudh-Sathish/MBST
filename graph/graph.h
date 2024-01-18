@@ -5,6 +5,7 @@
 #include <queue>
 #include <set>
 #include <climits>
+#include <utility>
 #include "dsu.h"
 
 #ifndef WEIGHTEDGRAPH_H
@@ -28,15 +29,18 @@ class WeightedGraph
     private:
         map<int, vector<Edge>> adjacencyList;
 
-    public:
-        void insert_edge(int source , int dest, int weight)
-        {
-            adjacencyList[source].emplace_back(source,dest,weight);
-            adjacencyList[dest].emplace_back(dest,source,weight);
+        static bool compareBySize(const pair<int, vector<Edge>>& a, const pair<int, vector<Edge>>& b) {
+            return a.second.size() < b.second.size();
         }
-        map<int , vector<Edge>> get_representation()
+        static bool compareEdgeWeight(const Edge &a, const Edge &b)
         {
-            return adjacencyList;
+            return a.weight < b.weight;
+        }
+        vector<pair<int, vector<Edge>>> sort_adjacencyList()
+        {
+            vector<pair<int, vector<Edge>>> adj_list(this->adjacencyList.begin(), this->adjacencyList.end());
+            sort(adj_list.begin(), adj_list.end(), compareBySize);
+            return adj_list;
         }
         vector<Edge> get_edges()
         {
@@ -49,6 +53,34 @@ class WeightedGraph
                 }
             }
             return edges;
+        }
+        vector<int> get_vertices()
+        {
+            vector<int> vertices;
+            for(const auto &item : adjacencyList)
+            {
+                vertices.push_back(item.first);
+            }
+            return vertices;
+        }
+        map<int,int> init_degree()
+        {
+            map<int,int> degree;
+            for(const auto it: this->adjacencyList)
+            {
+                degree[it.first] = 0;
+            }
+            return degree;
+        }
+    public:
+        void insert_edge(int source , int dest, int weight)
+        {
+            adjacencyList[source].emplace_back(source,dest,weight);
+            adjacencyList[dest].emplace_back(dest,source,weight);
+        }
+        map<int , vector<Edge>> get_representation()
+        {
+            return adjacencyList;
         }
         void display_graph()
         {
@@ -106,12 +138,13 @@ class WeightedGraph
         vector<Edge> kruskal_mst()
         {
             vector<Edge> edges = this->get_edges();
+            vector<int> vertices = this->get_vertices();
             auto compareByWeight = [](const Edge &a, const Edge &b) {
                 return a.weight < b.weight;
                 };
             sort(edges.begin(), edges.end(), compareByWeight);
 
-            DSU dsu_obj(edges.size());
+            DSU_map dsu_obj(vertices);
             vector<Edge> mstEdges;
             for(auto edge: edges)
             {
@@ -119,41 +152,6 @@ class WeightedGraph
                 {
                     dsu_obj.union_dsu(edge.source_node,edge.destination_node);
                     mstEdges.push_back(edge);
-                }
-            }
-            return mstEdges;
-        }
-        map<int,int> set_degree()
-        {
-            map <int,int> degree;
-            for(auto item: this->adjacencyList)
-            {
-                degree[item.first] = 0;
-            }
-            return degree;
-        }
-        vector<Edge> kruskal_mbst()
-        {
-            vector<Edge> edges = this->get_edges();
-            auto compareByWeight = [](const Edge &a, const Edge &b) {
-                return a.weight < b.weight;
-                };
-            sort(edges.begin(), edges.end(), compareByWeight);
-
-            map<int,int> degree = this->set_degree();
-            DSU dsu_obj(edges.size());
-            vector<Edge> mstEdges;
-            for(auto edge: edges)
-            {
-                if (dsu_obj.find(edge.source_node) != dsu_obj.find(edge.destination_node))
-                {
-                    if(degree[edge.source_node]<2 && degree[edge.destination_node]<2)
-                    {
-                        dsu_obj.union_dsu(edge.source_node,edge.destination_node);
-                        mstEdges.push_back(edge);
-                        degree[edge.source_node]+=1;
-                        degree[edge.destination_node]+=1;
-                    }
                 }
             }
             return mstEdges;
@@ -166,14 +164,39 @@ class WeightedGraph
                 cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
             }
         }
-        void displayKruskalMBST()
+        vector<Edge> jaggeryMBST()
         {
-            vector<Edge> mst = this->kruskal_mbst();
+            vector<pair<int, vector<Edge>>> sortedAdj = this->sort_adjacencyList();
+            map<int,int> degree = this->init_degree();
+            vector<int> vertices = get_vertices();
+            DSU_map dsu_obj(vertices);
+            vector<Edge> mstEdges;
+            for(auto it: sortedAdj)
+            {
+                sort(it.second.begin(),it.second.end(),compareEdgeWeight);
+                for(const auto edge: it.second)
+                {
+                    if(degree[edge.destination_node]<2 && degree[edge.source_node]<2)
+                    {
+                        if(dsu_obj.find(edge.destination_node) != dsu_obj.find(edge.source_node))
+                        {
+                            dsu_obj.union_dsu(edge.source_node,edge.destination_node);
+                            mstEdges.push_back(edge);
+                            degree[edge.destination_node]+=1;
+                            degree[edge.source_node]+=1;
+                        }
+                    }
+                }
+            }
+            return mstEdges;
+        }
+        void jaggery_display()
+        {
+            vector<Edge> mst = this->jaggeryMBST();
             for(const auto edge: mst)
             {
                 cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
             }
         }
-
 };
 #endif // WEIGHTEDGRAPH_H
