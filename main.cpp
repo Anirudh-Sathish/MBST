@@ -11,6 +11,8 @@ int main()
     graph.insert_edge(2, 4, 7);
     cout<<"Graph Adjacency List"<<endl;
     graph.display_graph();
-    graph.displayKruskalMBST();
+    // graph.displayKruskalMBST();
+    graph.jaggery_display();
     // graph.displayPrim();
+    // graph.displayKruskal();
 }
