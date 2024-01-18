@@ -5,6 +5,7 @@
 #include <queue>
 #include <set>
 #include <climits>
+#include "dsu.h"
 
 #ifndef WEIGHTEDGRAPH_H
 #define WEIGHTEDGRAPH_H
@@ -36,6 +37,18 @@ class WeightedGraph
         map<int , vector<Edge>> get_representation()
         {
             return adjacencyList;
+        }
+        vector<Edge> get_edges()
+        {
+            vector<Edge> edges;
+            for (const auto &item: adjacencyList)
+            {
+                for(const auto &edge: item.second)
+                {
+                    edges.push_back(Edge(item.first,edge.destination_node,edge.weight));
+                }
+            }
+            return edges;
         }
         void display_graph()
         {
@@ -88,6 +101,34 @@ class WeightedGraph
             for(auto it= edges.begin(); it != edges.end(); it++)
             {
                 cout<<"Edge : "<<it->first<<" - "<<it->second<<endl;
+            }
+        }
+        vector<Edge> kruskal_mst()
+        {
+            vector<Edge> edges = this->get_edges();
+            auto compareByWeight = [](const Edge &a, const Edge &b) {
+                return a.weight < b.weight;
+                };
+            sort(edges.begin(), edges.end(), compareByWeight);
+
+            DSU dsu_obj(edges.size());
+            vector<Edge> mstEdges;
+            for(auto edge: edges)
+            {
+                if (dsu_obj.find(edge.source_node) != dsu_obj.find(edge.destination_node))
+                {
+                    dsu_obj.union_dsu(edge.source_node,edge.destination_node);
+                    mstEdges.push_back(edge);
+                }
+            }
+            return mstEdges;
+        }
+        void displayKruskal()
+        {
+            vector<Edge> mst = this->kruskal_mst();
+            for(const auto edge: mst)
+            {
+                cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
             }
         }
 
