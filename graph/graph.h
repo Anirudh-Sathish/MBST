@@ -7,6 +7,7 @@
 #include <climits>
 #include <utility>
 #include "dsu.h"
+#include "../utils/helper.cpp"
 
 #ifndef WEIGHTEDGRAPH_H
 #define WEIGHTEDGRAPH_H
@@ -72,6 +73,94 @@ class WeightedGraph
             }
             return degree;
         }
+        int get_weight( vector<Edge> mst)
+        {
+            int wght = 0;
+            for(const auto edge: mst)wght+=edge.weight;
+            return wght;
+        }
+        vector<vector<Edge>> get_combinations_from_string(int tree_edge_count , int edge_count, vector<Edge> edge_list)
+        {
+            vector<string> listing = generateStrings(tree_edge_count,edge_count);
+            vector<vector<Edge>> all_combinations;
+            for(auto item:listing)
+            {
+                vector<Edge> current_combination;
+                for(int i= 0 ; i < item.size(); i++)
+                {
+                    if (item[i] == '1')
+                    {
+                        current_combination.push_back(edge_list[i]);
+                    }
+                }
+                all_combinations.push_back(current_combination);
+            }
+            return all_combinations;
+        }
+        bool is_acylic(vector<Edge> tree_edges)
+        {
+            vector<int> vertices = get_vertices();
+            DSU_map dsu_obj(vertices);
+            for(const auto edge:tree_edges)
+            {
+                if(dsu_obj.find(edge.source_node) == dsu_obj.find(edge.destination_node))
+                {
+                    return false;
+                }
+                dsu_obj.union_dsu(edge.source_node,edge.destination_node);
+            }   
+            return true;
+        }
+        bool is_connected(vector<Edge> tree_edges)
+        {
+            vector<int> vertices = get_vertices();
+            DSU_map dsu_obj(vertices);
+            for(const auto edge: tree_edges)
+            {
+                dsu_obj.union_dsu(edge.source_node,edge.destination_node);
+            }
+            int start_vertex = this->adjacencyList.begin()->first;
+            int root_set = dsu_obj.find(start_vertex);
+
+            for(auto item: adjacencyList)
+            {
+                if(dsu_obj.find(item.first)!= root_set)return false;
+            }
+            return true;
+        }
+        bool is_mst(vector<Edge> tree_edges)
+        {
+            if(is_connected(tree_edges) && is_acylic(tree_edges))return true;
+            return false;
+
+        }
+        bool is_binary_st(vector<Edge> edges)
+        {
+            map<int,int> degree_list = init_degree();
+            for(const auto edge:edges)
+            {
+                degree_list[edge.source_node]+=1;
+            }
+            for(const auto degree:degree_list)
+            {
+                if(degree.second>3)return false;
+            }
+            return true;
+        }
+        vector<vector<Edge>> mst_permutations(vector<Edge> edges)
+        {
+            int edge_count = edges.size();
+            int tree_edge_count = this->adjacencyList.size()-1; // vertices-1
+            vector<vector<Edge>> combinations =this->get_combinations_from_string(tree_edge_count,edge_count,edges);
+            vector<vector<Edge>> accepted_combinations;
+            for(auto combination: combinations)
+            {
+                // check if this is mst and binary
+                if(is_mst(combination) && is_binary_st(combination))accepted_combinations.push_back(combination);
+        
+            }
+            return accepted_combinations;
+        }
     public:
         void insert_edge(int source , int dest, int weight)
         {
@@ -133,7 +222,7 @@ class WeightedGraph
             for(auto it= edges.begin(); it != edges.end(); it++)
             {
                 cout<<"Edge : "<<it->first<<" - "<<it->second<<endl;
-            }
+            }// reuires connectedness and acyclicity
         }
         vector<Edge> kruskal_mst()
         {
@@ -197,6 +286,47 @@ class WeightedGraph
             {
                 cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
             }
+            cout<<"Obtained weight: "<<this->get_weight(mst)<<endl;
         }
+        
+        vector<Edge> bruteMBST()
+        {
+            vector<Edge> edges = this->get_edges();
+            vector<vector<Edge>> binary_st_list = mst_permutations(edges);
+            vector<Edge> mbst;
+            int min_weight = INT_MAX;
+            for (const auto st: binary_st_list)
+            {
+                if(get_weight(st)< min_weight)
+                {
+                    mbst = st;
+                    min_weight = get_weight(st);
+                }
+            }
+            return mbst;
+        }
+        void bruteMBST_display()
+        {
+            vector<Edge> mbst = bruteMBST();
+            cout<<"Brute MBST"<<endl;
+            for(const auto edge: mbst)
+            {
+                cout<<"Edge: "<<edge.source_node<<"-"<<edge.destination_node<<" Weight: "<<edge.weight<<endl;
+            }
+            cout<<"Obtained optimal weight: "<<this->get_weight(mbst)<<endl;
+        }
+        float get_approximation_ratio(string algo)
+        {
+            vector<Edge> optimal_mbst =bruteMBST(),predicted_mbst;
+            float optimal_weight = get_weight(optimal_mbst) , predicted_weight;
+            if(algo == "jaggery")
+            {
+                predicted_mbst = jaggeryMBST();
+                predicted_weight = get_weight(predicted_mbst);
+                return predicted_weight/optimal_weight;
+            }
+            return 0;
+        }
+        
 };
 #endif // WEIGHTEDGRAPH_H
