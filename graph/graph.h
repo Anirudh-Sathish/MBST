@@ -165,7 +165,7 @@ class WeightedGraph
         void insert_edge(int source , int dest, int weight)
         {
             adjacencyList[source].emplace_back(source,dest,weight);
-            adjacencyList[dest].emplace_back(dest,source,weight);
+            // adjacencyList[dest].emplace_back(dest,source,weight);
         }
         map<int , vector<Edge>> get_representation()
         {
@@ -265,7 +265,7 @@ class WeightedGraph
                 sort(it.second.begin(),it.second.end(),compareEdgeWeight);
                 for(const auto edge: it.second)
                 {
-                    if(degree[edge.destination_node]<2 && degree[edge.source_node]<2)
+                    if(degree[edge.destination_node]<3 && degree[edge.source_node]<3)
                     {
                         if(dsu_obj.find(edge.destination_node) != dsu_obj.find(edge.source_node))
                         {
