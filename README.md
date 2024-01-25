@@ -2,5 +2,5 @@
 Minimum Binary Spanning Tree
 
 Progress
-Input : Weighted Graph
-Output : Minimum Spanning Tree
+Input : Weighted Interval Graph
+Output : Minimum Spanning Binary Tree
