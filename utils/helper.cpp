@@ -3,24 +3,30 @@
 #include <string>
 #include<vector>
 using namespace std;
-void generateStringsUtil(int m, int n, int index, int count, string &currentString , vector<string> &stringList) {
-    if (count == m) {
-        // cout << currentString << endl;
-        stringList.push_back(currentString);
+
+void generatePermutations(vector<int>& current, int length, vector<string>& result) {
+    if (current.size() == length) {
+        string permutation;
+        for (int digit : current) {
+            permutation += to_string(digit);
+        }
+        result.push_back(permutation);
         return;
     }
-    if (index < n) {
-        currentString[index] = '0';
-        generateStringsUtil(m, n, index + 1, count, currentString, stringList);
+    current.push_back(0);
+    generatePermutations(current, length, result);
+    current.pop_back();  
 
-        currentString[index] = '1';
-        generateStringsUtil(m, n, index + 1, count + 1, currentString, stringList);
-    }
+    current.push_back(1);
+    generatePermutations(current, length, result);
+    current.pop_back();  
 }
 
-vector<string> generateStrings(int m, int n) {
+vector<string> generateStrings(int n) {
     string currentString(n, '0');
     vector<string> stringList;
-    generateStringsUtil(m, n, 0, 0, currentString, stringList);
+    vector<int> current;
+
+    generatePermutations(current, n, stringList);
     return stringList;
 }

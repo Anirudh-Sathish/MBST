@@ -46,11 +46,19 @@ class WeightedGraph
         vector<Edge> get_edges()
         {
             vector<Edge> edges;
+            set<pair<int,int>> visitedEdges;
             for (const auto &item: adjacencyList)
             {
+                int source_node = item.first;
                 for(const auto &edge: item.second)
                 {
-                    edges.push_back(Edge(item.first,edge.destination_node,edge.weight));
+                    int destination_node = edge.destination_node;
+                    pair<int,int> current_edge = make_pair(min(source_node,destination_node),max(source_node,destination_node));
+                    if(visitedEdges.find(current_edge) == visitedEdges.end())
+                    {
+                        edges.push_back(Edge(source_node,destination_node,edge.weight));
+                        visitedEdges.insert(current_edge);
+                    }
                 }
             }
             return edges;
@@ -79,9 +87,9 @@ class WeightedGraph
             for(const auto edge: mst)wght+=edge.weight;
             return wght;
         }
-        vector<vector<Edge>> get_combinations_from_string(int tree_edge_count , int edge_count, vector<Edge> edge_list)
+        vector<vector<Edge>> get_combinations_from_string(int edge_count, vector<Edge> edge_list)
         {
-            vector<string> listing = generateStrings(tree_edge_count,edge_count);
+            vector<string> listing = generateStrings(edge_count);
             vector<vector<Edge>> all_combinations;
             for(auto item:listing)
             {
@@ -151,10 +159,11 @@ class WeightedGraph
         {
             int edge_count = edges.size();
             int tree_edge_count = this->adjacencyList.size()-1; // vertices-1
-            vector<vector<Edge>> combinations =this->get_combinations_from_string(tree_edge_count,edge_count,edges);
+            vector<vector<Edge>> combinations =this->get_combinations_from_string(edge_count,edges);
             vector<vector<Edge>> accepted_combinations;
             for(auto combination: combinations)
             {
+                if(combination.size()!=tree_edge_count)continue;
                 // check if this is mst and binary
                 if(is_mst(combination) && is_binary_st(combination))accepted_combinations.push_back(combination);
         
